@@ -1,4 +1,4 @@
-# Python
+﻿# Python
 __pycache__/
 *.py[cod]
 *.pyo
@@ -7,15 +7,19 @@ __pycache__/
 
 # Virtual environments
 venv/
+.venv/
+env/
+
+# Environment secrets
 .env
 
 # OS / editor
-*.DS_Store
+.DS_Store
 *.swp
 .idea/
 .vscode/
 
-# Chroma/Vector stores
+# Chroma / Vector stores
 chroma_db/
 chroma_store/
 
@@ -25,4 +29,5 @@ chroma_store/
 # Logs
 *.log
 
-
+# Pytest
+.pytest_cache/

@@ -1,118 +1,271 @@
-# Ethiopian History RAG Assistant
+# 🏛️ Abyssinia AI — Ethiopian History RAG Assistant
 
-A lightweight Retrieval-Augmented Generation (RAG) application that answers questions about Ethiopian history using a local text corpus, a persistent Chroma vector database, and a Groq-hosted LLM. The project ships with a Streamlit UI and an optional CLI.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.12+-blue?logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/Streamlit-1.37-FF4B4B?logo=streamlit&logoColor=white" />
+  <img src="https://img.shields.io/badge/LangChain-0.3-blueviolet?logo=chainlink&logoColor=white" />
+  <img src="https://img.shields.io/badge/ChromaDB-0.5.5-orange" />
+  <img src="https://img.shields.io/badge/Groq-LLaMA_3.1-green" />
+  <img src="https://img.shields.io/badge/License-MIT-yellow" />
+</p>
 
-## Features
-- Ingest `.txt` sources from `data/`, chunk and embed them with `sentence-transformers/all-MiniLM-L6-v2`.
-- Persist embeddings in Chroma (`chroma_db/`) for fast reloads.
-- Retrieve top-k relevant chunks via semantic similarity with deduplication and thresholding.
-- Build a concise, source-aware prompt for the LLM.
-- Generate succinct answers using `langchain_groq.ChatGroq` authenticated via `GROQ_API_KEY`.
-- Streamlit UI and CLI entry points.
+> A production-ready Retrieval-Augmented Generation (RAG) application that answers questions about Ethiopian and Abyssinian history using a curated local text corpus, a persistent ChromaDB vector store, and the Groq-hosted LLaMA 3.1 LLM.
 
-## Architecture
-- `app.py`: Streamlit UI for querying and displaying answers.
-- `vectordb_and_ingestion.py`: `VectorDBManager` handles chunking, embedding, persistence, and retrieval.
-- `prompt_builder.py`: Builds compact prompts from retrieved chunks with minimal source hints.
-- `retrieval_and_response.py`: CLI pipeline mirroring the app (load/ingest → retrieve → prompt → answer).
-- `logger.py`: Minimal console logger shared across modules.
-- `wiki_fetcher.py`: Helper to fetch Wikipedia pages into `data/` as `.txt`.
+---
 
-## Prerequisites
-- Python 3.12+
-- A Groq API key
+## 📸 Screenshots
 
-## Quickstart
+| Answer Found | Out-of-Scope Query |
+|---|---|
+| <img width="500" alt="Answer found" src="https://github.com/user-attachments/assets/392a5dbd-ae5e-4934-8edb-6e8e3b79a805" /> | <img width="500" alt="No answer" src="https://github.com/user-attachments/assets/baa4041e-a550-4e3a-b891-e3f3b60bb599" /> |
+
+---
+
+## ✨ Features
+
+- 📚 **Curated Corpus** — Eight hand-crafted `.txt` documents covering Axum, the Zagwe Dynasty, Solomonic Dynasty, Menelik II, Haile Selassie, the Derg Regime, the Ethiopian Civil War, and Modern Ethiopia.
+- 🔍 **Semantic Search** — Embeds documents with `sentence-transformers/all-MiniLM-L6-v2` and stores them in ChromaDB for fast similarity search.
+- 🧠 **Grounded Answers** — Strict prompt policy: answers come *only* from retrieved context; the model replies "I don't know" when no relevant chunk is found.
+- ⚡ **Groq LLM** — Uses `llama-3.1-8b-instant` via `langchain_groq` for sub-second inference.
+- 🖥️ **Streamlit UI** — Interactive sliders for Top-K chunks and similarity threshold; no coding required to query.
+- 💻 **CLI Interface** — Script-friendly `retrieval_and_response.py` for shell pipelines and automation.
+- 🐳 **Docker Support** — Single-command containerised deployment.
+- 🌐 **Wikipedia Ingestion** — `wiki_fetcher.py` lets you expand the corpus with any Wikipedia article.
+- ✅ **Unit Tests** — Pytest suite covering retrieval deduplication logic.
+
+---
+
+## 🏗️ Architecture
+
+```
+User Query
+    │
+    ▼
+┌─────────────────────────────────────────────────────┐
+│                   Streamlit UI / CLI                │
+│               (app.py / retrieval_and_response.py)  │
+└───────────────────────┬─────────────────────────────┘
+                        │
+                        ▼
+           ┌────────────────────────┐
+           │   VectorDBManager      │
+           │  vectordb_and_ingestion│
+           │  • Chunk (RecursiveCS) │
+           │  • Embed (MiniLM-L6)   │
+           │  • Persist (ChromaDB)  │
+           └────────────┬───────────┘
+                        │ top-k chunks
+                        ▼
+           ┌────────────────────────┐
+           │   rag_assistant pkg    │
+           │  retriever.py          │
+           │  • filter by threshold │
+           │  • deduplicate         │
+           └────────────┬───────────┘
+                        │ filtered docs
+                        ▼
+           ┌────────────────────────┐
+           │   prompt_builder.py    │
+           │  • build context string│
+           │  • strict grounding    │
+           └────────────┬───────────┘
+                        │ prompt
+                        ▼
+           ┌────────────────────────┐
+           │   Groq LLM (LLaMA 3.1) │
+           │   via langchain_groq   │
+           └────────────┬───────────┘
+                        │
+                        ▼
+                    Answer ✅
+```
+
+---
+
+## 📂 Project Structure
+
+```
+abyssinia-ai/
+├── code/
+│   ├── app.py                    # Streamlit UI entry point
+│   ├── retrieval_and_response.py # CLI pipeline
+│   ├── vectordb_and_ingestion.py # VectorDBManager (chunk/embed/persist)
+│   ├── prompt_builder.py         # Prompt assembly with grounding policy
+│   ├── logger.py                 # Shared console logger
+│   └── rag_assistant/
+│       ├── __init__.py
+│       ├── data_loader.py        # List .txt corpus files
+│       ├── retriever.py          # Filter & deduplicate results
+│       └── generator.py          # Wrap LLM invocation
+├── data/
+│   ├── axum_empire.txt
+│   ├── derg_regime.txt
+│   ├── ethiopian_civil_war.txt
+│   ├── haile_selassie.txt
+│   ├── menelik_II.txt
+│   ├── modern_ethiopia.txt
+│   ├── solomonic_dynasty.txt
+│   └── zagwe_dynasty.txt
+├── tests/
+│   └── test_retriever.py         # Pytest unit tests
+├── models/
+│   └── README.md                 # Notes on embedding model
+├── assets/
+│   └── screenshots/              # UI screenshots
+├── wiki_fetcher.py               # Wikipedia corpus expansion utility
+├── Dockerfile                    # Container build definition
+├── requirements.txt              # Pinned Python dependencies
+├── .env.example                  # Environment variable template
+├── .gitignore
+└── README.md
+```
+
+---
+
+## 🚀 Quickstart
+
+### 1. Clone & set up environment
+
 ```bash
-# 1) Create and activate a virtual environment (recommended)
-python3 -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+git clone https://github.com/abrsh21son/abyssinia-ai.git
+cd abyssinia-ai
 
-# 2) Install dependencies
+python -m venv .venv
+# Linux / macOS
+source .venv/bin/activate
+# Windows
+.venv\Scripts\activate
+```
+
+### 2. Install dependencies
+
+```bash
 pip install -r requirements.txt
+```
 
-# 3) Configure environment
-# Create .env and set GROQ_API_KEY
-printf "GROQ_API_KEY=your_key_here\n" > .env
+### 3. Configure environment variables
 
-# 4) (Optional) Seed/expand the corpus with Wikipedia content
-python -c "from wiki_fetcher import fetch_and_save_page; fetch_and_save_page('Axum Empire')"
+```bash
+cp .env.example .env
+# Edit .env and paste your Groq API key
+```
 
-# 5) Run the Streamlit app
+`.env` file:
+```env
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+Get a free API key at [console.groq.com](https://console.groq.com).
+
+### 4. Run the Streamlit app
+
+```bash
 streamlit run code/app.py
 ```
 
-## Screenshots
+Open [http://localhost:8501](http://localhost:8501) in your browser.
 
-Answer found from context 
-(<img width="800" height="608" alt="Screenshot from 2025-10-01 11-32-50" src="https://github.com/user-attachments/assets/392a5dbd-ae5e-4934-8edb-6e8e3b79a805" />
+### 5. (Optional) Expand the corpus with Wikipedia
 
-Answer not found (out-of-scope question):
+```bash
+python -c "from wiki_fetcher import fetch_and_save_page; fetch_and_save_page('Battle of Adwa')"
+```
 
-<img width="800" height="608" alt="Screenshot from 2025-10-01 11-34-15" src="https://github.com/user-attachments/assets/baa4041e-a550-4e3a-b891-e3f3b60bb599" />
+Then re-run the app — it will automatically re-embed the new document on first query.
 
+---
 
-### CLI Usage
+## 💻 CLI Usage
+
 ```bash
 python -m code.retrieval_and_response "Who was Menelik II?" --top_k 2 --threshold 1.0
 ```
 
-## Environment Variables
-- `GROQ_API_KEY`: Your Groq API key for `langchain_groq.ChatGroq`.
+Arguments:
 
-Example `.env`:
+| Argument | Default | Description |
+|---|---|---|
+| `query` | *(required)* | Your question about Ethiopian history |
+| `--top_k` | `2` | Number of top chunks to retrieve |
+| `--threshold` | `1.0` | Max cosine distance (lower = stricter match) |
+
+---
+
+## 🐳 Docker
+
 ```bash
-GROQ_API_KEY=your_key_here
+# Build the image
+docker build -t abyssinia-ai .
+
+# Run (pass your API key at runtime)
+docker run -p 8501:8501 -e GROQ_API_KEY=your_key abyssinia-ai
 ```
 
-## Data & Persistence
-- Place `.txt` sources in `data/`.
-- On first run, the app/CLI will chunk, embed, and persist a Chroma collection under `chroma_db/`.
-- Subsequent runs load the existing DB for faster startup.
+---
 
-## End-to-End Flow
-1. Load (or build) the Chroma vector database via `VectorDBManager`.
-2. Perform a similarity search for the query to get candidate chunks.
-3. Filter by similarity threshold and remove duplicates.
-4. Build a concise prompt via `prompt_builder.build_prompt`.
-5. Generate an answer using `langchain_groq.ChatGroq` and return it to the UI/CLI.
+## 🧪 Running Tests
 
-## Project Structure
-```
-rag-history-agent/
-├─ app.py                     # Streamlit UI
-├─ retrieval_and_response.py  # CLI entry
-├─ vectordb_and_ingestion.py  # VectorDBManager (chunk/embed/persist)
-├─ prompt_builder.py          # Prompt assembly
-├─ logger.py                  # Shared logger
-├─ wiki_fetcher.py            # Wikipedia ingestion utility
-├─ data/                      # Text corpus (.txt files)
-├─ chroma_db/                 # Chroma persistence (ignored by git)
-├─ requirements.txt           # Python dependencies
-├─ .gitignore
-└─ README.md
+```bash
+pip install pytest
+pytest tests/ -v
 ```
 
-## Troubleshooting
-- "GROQ_API_KEY missing": Ensure `.env` exists, includes `GROQ_API_KEY`, and `python-dotenv` is installed.
-- Long initial startup: First run embeds the corpus; subsequent runs are faster.
-- Weak answers: Increase `Top-K`, lower the `Similarity threshold`, or add more documents to `data/`.
-- Dependency errors: Verify the virtual environment is active and dependencies are installed from `requirements.txt`.
+---
 
-## Suggested Dependencies
-If `requirements.txt` isn’t populated, include:
-```
-streamlit
-python-dotenv
-langchain
-langchain-community
-langchain-groq
-sentence-transformers
-chromadb
-requests
-beautifulsoup4
-```
+## 🗂️ Data Corpus
 
-## License
-Provided as-is for educational purposes. Add a license of your choice for distribution or commercial use.
+| File | Topic |
+|---|---|
+| `axum_empire.txt` | The Aksumite Empire (1st–10th century CE) |
+| `zagwe_dynasty.txt` | The Zagwe Dynasty and rock-hewn churches |
+| `solomonic_dynasty.txt` | The Solomonic restoration and imperial lineage |
+| `menelik_II.txt` | Emperor Menelik II and the Battle of Adwa |
+| `haile_selassie.txt` | Emperor Haile Selassie and the League of Nations |
+| `derg_regime.txt` | The Derg military junta (1974–1991) |
+| `ethiopian_civil_war.txt` | The Ethiopian Civil War |
+| `modern_ethiopia.txt` | Contemporary Ethiopia and the EPRDF/PP era |
 
+---
+
+## ⚙️ Environment Variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `GROQ_API_KEY` | ✅ Yes | API key for Groq LLM inference |
+
+---
+
+## 🛠️ Troubleshooting
+
+| Issue | Fix |
+|---|---|
+| `GROQ_API_KEY missing` | Create `.env` and add `GROQ_API_KEY=your_key` |
+| Slow first startup | Normal — embedding all documents takes ~30 s |
+| Weak/irrelevant answers | Increase `Top-K` or lower the similarity threshold |
+| `ModuleNotFoundError` | Ensure venv is active and `pip install -r requirements.txt` was run |
+| Empty results | Check `.txt` files exist in `data/` and contain text |
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Commit your changes: `git commit -m "feat: add my feature"`
+4. Push and open a Pull Request
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License** — see [LICENSE](LICENSE) for details.
+
+---
+
+## 🙏 Acknowledgements
+
+- [LangChain](https://github.com/langchain-ai/langchain) for the RAG orchestration framework
+- [ChromaDB](https://github.com/chroma-core/chroma) for the vector store
+- [Groq](https://groq.com) for ultra-fast LLM inference
+- [Hugging Face](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) for the embedding model
+- Ethiopian history scholars and Wikipedia contributors for reference material
