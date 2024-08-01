@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 
 
 def setup_logger(name="rag_logger", level=logging.INFO):
@@ -13,4 +13,3 @@ def setup_logger(name="rag_logger", level=logging.INFO):
 
 
 logger = setup_logger()
-
