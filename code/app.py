@@ -22,27 +22,33 @@ def get_db_manager():
 
 db_manager = get_db_manager()
 vector_db = db_manager.get_vector_db()
+st.markdown('Ask a question about Ethiopian history.')
 query = st.text_input('Your question:', '')
+top_k = st.slider('Top-K chunks', min_value=1, max_value=5, value=2)
+threshold = st.slider('Distance threshold', min_value=0.0, max_value=1.5, value=1.0, step=0.05)
 
 if st.button('Get Answer') and query.strip():
-    with st.spinner('Retrieving answer...'):
-        results = vector_db.similarity_search_with_score(query, k=10)
+    with st.spinner('Retrieving and generating answer...'):
+        results = vector_db.similarity_search_with_score(query, k=top_k * 5)
         results = sorted(results, key=lambda x: (x[1] is None, x[1]))
         unique_contexts = []
         seen = set()
         for doc, score in results:
+            if score is not None and score > threshold:
+                continue
             if doc.page_content not in seen:
                 seen.add(doc.page_content)
                 unique_contexts.append((doc, score))
-            if len(unique_contexts) >= 2:
+            if len(unique_contexts) >= top_k:
                 break
         if not unique_contexts:
-            st.warning('No relevant context found.')
-        else:
+            st.warning('No relevant documents found.')
+        elif groq_key:
             prompt = build_prompt(query, unique_contexts)
-            if groq_key:
-                from langchain_groq import ChatGroq
-                llm = ChatGroq(api_key=groq_key, model='llama-3.1-8b-instant', temperature=0)
-                response = llm.invoke(prompt)
-                st.subheader('Answer')
-                st.write(getattr(response, 'content', str(response)))
+            from langchain_groq import ChatGroq
+            llm = ChatGroq(api_key=groq_key, model='llama-3.1-8b-instant', temperature=0)
+            response = llm.invoke(prompt)
+            answer_text = getattr(response, 'content', str(response))
+            logger.info(f'Query: {query}')
+            st.subheader('Answer')
+            st.write(answer_text)
