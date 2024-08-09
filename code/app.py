@@ -22,10 +22,10 @@ def get_db_manager():
 
 db_manager = get_db_manager()
 vector_db = db_manager.get_vector_db()
-st.markdown('Ask a question about Ethiopian history.')
+st.markdown('Ask a question about Ethiopian history. The assistant searches its document base and answers concisely.')
 query = st.text_input('Your question:', '')
 top_k = st.slider('Top-K chunks', min_value=1, max_value=5, value=2)
-threshold = st.slider('Distance threshold', min_value=0.0, max_value=1.5, value=1.0, step=0.05)
+threshold = st.slider('Distance threshold (lower = more similar)', min_value=0.0, max_value=1.5, value=1.0, step=0.05)
 
 if st.button('Get Answer') and query.strip():
     with st.spinner('Retrieving and generating answer...'):
@@ -42,13 +42,19 @@ if st.button('Get Answer') and query.strip():
             if len(unique_contexts) >= top_k:
                 break
         if not unique_contexts:
-            st.warning('No relevant documents found.')
+            st.warning('Sorry, I cannot answer based on the available documents.')
         elif groq_key:
             prompt = build_prompt(query, unique_contexts)
-            from langchain_groq import ChatGroq
-            llm = ChatGroq(api_key=groq_key, model='llama-3.1-8b-instant', temperature=0)
-            response = llm.invoke(prompt)
-            answer_text = getattr(response, 'content', str(response))
-            logger.info(f'Query: {query}')
-            st.subheader('Answer')
-            st.write(answer_text)
+            try:
+                from langchain_groq import ChatGroq
+                llm = ChatGroq(api_key=groq_key, model='llama-3.1-8b-instant', temperature=0)
+                response = llm.invoke(prompt)
+                answer_text = getattr(response, 'content', str(response))
+                logger.info(f'Query: {query}')
+                st.subheader('Answer')
+                st.write(answer_text)
+                with st.expander('Sources'):
+                    for doc, score in unique_contexts:
+                        st.markdown(f'- **{doc.metadata.get(""filename"",""unknown"")}** (distance: {score:.3f})')
+            except Exception as e:
+                st.error(f'Groq API error: {e}')
