@@ -7,39 +7,46 @@ from code.logger import logger
 
 
 class VectorDBManager:
-    """Handles chunking, embedding, and persistent vector DB."""
+    DEFAULT_MODEL = 'sentence-transformers/all-MiniLM-L6-v2'
 
     def __init__(self, data_dir='data', persist_dir='chroma_db', collection_name='ethiopian_history'):
         self.data_dir = data_dir
         self.persist_dir = persist_dir
         self.collection_name = collection_name
-        self.embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
+        self.embeddings = HuggingFaceEmbeddings(model_name=self.DEFAULT_MODEL)
         self.vector_db = None
 
-    def embed_and_insert(self, chunk_size=1000, chunk_overlap=200):
+    def _read_documents(self, chunk_size, chunk_overlap):
         docs = []
         splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-        for fname in os.listdir(self.data_dir):
-            if fname.endswith('.txt'):
-                path = os.path.join(self.data_dir, fname)
-                try:
-                    with open(path, 'r', encoding='utf-8') as f:
-                        text = f.read()
-                    if not text.strip():
-                        logger.warning(f'Empty file: {fname}')
-                        continue
-                    chunks = splitter.split_text(text)
-                    for i, chunk in enumerate(chunks):
-                        docs.append(Document(page_content=chunk, metadata={'filename': fname, 'chunk_id': i}))
-                except Exception as e:
-                    logger.error(f'Error reading {fname}: {e}')
+        for fname in sorted(os.listdir(self.data_dir)):
+            if not fname.endswith('.txt'):
+                continue
+            path = os.path.join(self.data_dir, fname)
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    text = f.read()
+                if not text.strip():
+                    logger.warning(f'Empty file skipped: {fname}')
+                    continue
+                for i, chunk in enumerate(splitter.split_text(text)):
+                    docs.append(Document(
+                        page_content=chunk,
+                        metadata={'filename': fname, 'chunk_id': i, 'id': f'{fname}_{i}'}
+                    ))
+            except Exception as e:
+                logger.error(f'Error reading {fname}: {e}')
+        return docs
+
+    def embed_and_insert(self, chunk_size=1000, chunk_overlap=200):
+        docs = self._read_documents(chunk_size, chunk_overlap)
         if docs:
             self.vector_db = Chroma.from_documents(
                 docs, embedding=self.embeddings,
                 persist_directory=self.persist_dir, collection_name=self.collection_name
             )
             self.vector_db.persist()
-            logger.info(f'Inserted {len(docs)} chunks into ChromaDB.')
+            logger.info(f'Embedded {len(docs)} chunks.')
         else:
             logger.warning('No valid .txt files found.')
 
@@ -51,7 +58,7 @@ class VectorDBManager:
                     embedding_function=self.embeddings,
                     collection_name=self.collection_name
                 )
-                logger.info('Loaded Chroma vector DB from disk.')
+                logger.info('Loaded Chroma DB from disk.')
             except Exception as e:
                 logger.error(f'Failed to load Chroma DB: {e}')
 
