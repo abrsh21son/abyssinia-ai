@@ -2,6 +2,7 @@
 from dotenv import load_dotenv
 from code.vectordb_and_ingestion import VectorDBManager
 from code.prompt_builder import build_prompt
+from code.rag_assistant.retriever import deduplicate_and_filter
 from code.logger import logger
 
 
@@ -11,17 +12,7 @@ def retrieve_relevant_chunks(vector_db, query, top_k=2, similarity_threshold=1.0
         return []
     results = vector_db.similarity_search_with_score(query, k=top_k * 5)
     results = sorted(results, key=lambda x: (x[1] is None, x[1]))
-    unique_contexts = []
-    seen = set()
-    for doc, score in results:
-        if score is not None and score > similarity_threshold:
-            continue
-        if doc.page_content not in seen:
-            seen.add(doc.page_content)
-            unique_contexts.append((doc, score))
-        if len(unique_contexts) >= top_k:
-            break
-    return unique_contexts
+    return deduplicate_and_filter(results, top_k=top_k, threshold=similarity_threshold)
 
 
 def respond_to_query(query, top_k=2, similarity_threshold=1.0):
@@ -34,13 +25,16 @@ def respond_to_query(query, top_k=2, similarity_threshold=1.0):
     vm.load_db()
     if not vm.vector_db:
         vm.embed_and_insert()
-    docs = retrieve_relevant_chunks(vm.vector_db, query, top_k=top_k, similarity_threshold=similarity_threshold)
+    docs = retrieve_relevant_chunks(vm.vector_db, query, top_k, similarity_threshold)
     if not docs:
         return 'No relevant information found.'
     prompt = build_prompt(query, docs)
-    llm = ChatGroq(api_key=groq_key, model='llama-3.1-8b-instant', temperature=0)
-    answer = llm.invoke(prompt)
-    return answer
+    try:
+        llm = ChatGroq(api_key=groq_key, model='llama-3.1-8b-instant', temperature=0)
+        answer = llm.invoke(prompt)
+        return getattr(answer, 'content', str(answer))
+    except Exception as e:
+        return f'Error: {e}'
 
 
 if __name__ == '__main__':
@@ -50,4 +44,4 @@ if __name__ == '__main__':
     parser.add_argument('--top_k', type=int, default=2)
     parser.add_argument('--threshold', type=float, default=1.0)
     args = parser.parse_args()
-    print('\nAnswer:\n', respond_to_query(args.query, top_k=args.top_k, similarity_threshold=args.threshold))
+    print('\nAnswer:\n', respond_to_query(args.query, args.top_k, args.threshold))
