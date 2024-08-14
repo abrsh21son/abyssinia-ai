@@ -9,11 +9,11 @@ from code.logger import logger
 class VectorDBManager:
     DEFAULT_MODEL = 'sentence-transformers/all-MiniLM-L6-v2'
 
-    def __init__(self, data_dir='data', persist_dir='chroma_db', collection_name='ethiopian_history'):
+    def __init__(self, data_dir='data', persist_dir='chroma_db', collection_name='ethiopian_history', model_name=None):
         self.data_dir = data_dir
         self.persist_dir = persist_dir
         self.collection_name = collection_name
-        self.embeddings = HuggingFaceEmbeddings(model_name=self.DEFAULT_MODEL)
+        self.embeddings = HuggingFaceEmbeddings(model_name=model_name or self.DEFAULT_MODEL)
         self.vector_db = None
 
     def _read_documents(self, chunk_size, chunk_overlap):
@@ -27,7 +27,6 @@ class VectorDBManager:
                 with open(path, 'r', encoding='utf-8') as f:
                     text = f.read()
                 if not text.strip():
-                    logger.warning(f'Empty file skipped: {fname}')
                     continue
                 for i, chunk in enumerate(splitter.split_text(text)):
                     docs.append(Document(
@@ -66,3 +65,12 @@ class VectorDBManager:
         if not self.vector_db:
             self.load_db()
         return self.vector_db
+
+    def count(self) -> int:
+        db = self.get_vector_db()
+        if db is None:
+            return 0
+        try:
+            return db._collection.count()
+        except Exception:
+            return -1
