@@ -6,13 +6,14 @@ from code.prompt_builder import build_prompt
 from code.rag_assistant.retriever import deduplicate_and_filter
 from code.logger import logger
 
-st.set_page_config(page_title='Ethiopian History RAG Assistant', layout='centered')
-st.title('Ethiopian History RAG Assistant')
+st.set_page_config(page_title='Abyssinia AI', page_icon='U+1F3DB', layout='centered')
+st.title('Abyssinia AI')
+st.caption('An AI assistant for Ethiopian and Abyssinian history')
 load_dotenv()
 groq_key = os.getenv('GROQ_API_KEY')
 
 
-@st.cache_resource(show_spinner=True)
+@st.cache_resource(show_spinner='Loading knowledge base...')
 def get_db_manager():
     dbm = VectorDBManager()
     dbm.load_db()
@@ -23,8 +24,15 @@ def get_db_manager():
 
 db_manager = get_db_manager()
 vector_db = db_manager.get_vector_db()
-st.markdown('Ask a question about Ethiopian history.')
-query = st.text_input('Your question:', '')
+
+with st.sidebar:
+    st.header('About')
+    count = db_manager.count()
+    st.metric('Indexed chunks', count if count >= 0 else 'unknown')
+    st.caption('Embedding: all-MiniLM-L6-v2')
+    st.caption('LLM: Groq LLaMA 3.1-8b-instant')
+
+query = st.text_input('Your question:', placeholder='e.g. Who won the Battle of Adwa?')
 top_k = st.slider('Top-K chunks', min_value=1, max_value=5, value=2)
 threshold = st.slider('Distance threshold', min_value=0.0, max_value=1.5, value=1.0, step=0.05)
 
