@@ -1,9 +1,12 @@
 ﻿import os
+import sys
 from dotenv import load_dotenv
 from code.vectordb_and_ingestion import VectorDBManager
 from code.prompt_builder import build_prompt
 from code.rag_assistant.retriever import deduplicate_and_filter
 from code.logger import logger
+
+__version__ = '0.1.0'
 
 
 def retrieve_relevant_chunks(vector_db, query, top_k=2, similarity_threshold=1.0):
@@ -20,15 +23,23 @@ def respond_to_query(query, top_k=2, similarity_threshold=1.0):
     groq_key = os.getenv('GROQ_API_KEY')
     if not groq_key:
         return 'Error: GROQ_API_KEY missing.'
-    from langchain_groq import ChatGroq
+    try:
+        from langchain_groq import ChatGroq
+    except ImportError:
+        return 'Error: langchain_groq not installed.'
     vm = VectorDBManager()
     vm.load_db()
     if not vm.vector_db:
         vm.embed_and_insert()
+    if not vm.vector_db:
+        return 'Error: Failed to initialise vector database.'
     docs = retrieve_relevant_chunks(vm.vector_db, query, top_k, similarity_threshold)
     if not docs:
         return 'No relevant information found.'
-    prompt = build_prompt(query, docs)
+    try:
+        prompt = build_prompt(query, docs)
+    except ValueError as e:
+        return f'Prompt error: {e}'
     try:
         llm = ChatGroq(api_key=groq_key, model='llama-3.1-8b-instant', temperature=0)
         answer = llm.invoke(prompt)
@@ -39,9 +50,12 @@ def respond_to_query(query, top_k=2, similarity_threshold=1.0):
 
 if __name__ == '__main__':
     import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('query')
+    parser = argparse.ArgumentParser(description='Abyssinia AI CLI')
+    parser.add_argument('query', nargs='?')
     parser.add_argument('--top_k', type=int, default=2)
     parser.add_argument('--threshold', type=float, default=1.0)
+    parser.add_argument('--version', action='version', version=f'abyssinia-ai {__version__}')
     args = parser.parse_args()
+    if not args.query:
+        parser.print_help(); sys.exit(1)
     print('\nAnswer:\n', respond_to_query(args.query, args.top_k, args.threshold))
