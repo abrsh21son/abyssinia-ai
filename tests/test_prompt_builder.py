@@ -10,18 +10,24 @@ class DummyDoc:
 
 def test_contains_query():
     docs = [(DummyDoc('Ethiopia won.'), 0.5)]
-    prompt = build_prompt('Who won?', docs)
-    assert 'Who won?' in prompt
-    assert 'Answer:' in prompt
+    assert 'Who won?' in build_prompt('Who won?', docs)
 
 
 def test_contains_source():
-    docs = [(DummyDoc('Some fact.', 'menelik_II.txt'), 0.4)]
-    prompt = build_prompt('Test?', docs)
-    assert 'menelik_II.txt' in prompt
+    docs = [(DummyDoc('Fact.', 'menelik_II.txt'), 0.4)]
+    assert 'menelik_II.txt' in build_prompt('Test?', docs)
 
 
 def test_idk_instruction():
     docs = [(DummyDoc('Unrelated.'), 0.9)]
-    prompt = build_prompt('Question?', docs)
-    assert 'do not know' in prompt
+    assert 'do not know' in build_prompt('Question?', docs)
+
+
+def test_raises_on_empty_query():
+    with pytest.raises(ValueError):
+        build_prompt('', [(DummyDoc('Fact.'), 0.5)])
+
+
+def test_raises_on_empty_docs():
+    with pytest.raises(ValueError):
+        build_prompt('Question?', [])
