@@ -5,9 +5,13 @@ def build_prompt(query: str, docs: List[Tuple[Any, float]]) -> str:
     """
     Build a strict, context-grounded prompt for the LLM.
 
-    Numbered sources allow the model to cite its context.
-    Policy: answer only from context, or reply 'I do not know'.
+    Raises:
+        ValueError: if query or docs is empty.
     """
+    if not query or not query.strip():
+        raise ValueError('Query must not be empty.')
+    if not docs:
+        raise ValueError('Docs list must not be empty.')
     context_lines = []
     for i, (doc, _) in enumerate(docs, 1):
         src = doc.metadata.get('filename', 'unknown')
@@ -17,8 +21,8 @@ def build_prompt(query: str, docs: List[Tuple[Any, float]]) -> str:
     return (
         f'You are a factual assistant specialising in Ethiopian history.\n'
         f'Answer ONLY using the numbered context passages below.\n'
-        f'- If the answer is present, cite the source number.\n'
-        f'- If not found, reply exactly: I do not know\n\n'
+        f'- If found, cite the source number.\n'
+        f'- If not found, reply: I do not know\n\n'
         f'Context:\n{context}\n\n'
         f'Question: {query}\n'
         f'Answer:'
