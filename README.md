@@ -12,3 +12,4 @@ A lightweight Retrieval-Augmented Generation (RAG) app answering questions about
 pip install -r requirements.txt
 Add GROQ_API_KEY to .env
 streamlit run code/app.py
+<!-- badges updated -->
