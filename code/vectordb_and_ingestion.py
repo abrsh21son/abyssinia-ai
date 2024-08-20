@@ -1,4 +1,5 @@
-﻿import os
+﻿# Abyssinia AI - VectorDB ingestion module
+import os
 from langchain_community.vectorstores import Chroma
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.docstore.document import Document
