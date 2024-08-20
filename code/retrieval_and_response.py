@@ -1,4 +1,5 @@
-﻿import os
+﻿# Abyssinia AI - CLI entry point
+import os
 import sys
 from dotenv import load_dotenv
 from code.vectordb_and_ingestion import VectorDBManager
