@@ -1,4 +1,5 @@
-﻿import os
+﻿# Abyssinia AI - Streamlit entry point
+import os
 import streamlit as st
 from dotenv import load_dotenv
 from code.vectordb_and_ingestion import VectorDBManager
