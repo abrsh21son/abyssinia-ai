@@ -1,4 +1,5 @@
-﻿from typing import List, Tuple, Any
+﻿# Abyssinia AI - Prompt construction
+from typing import List, Tuple, Any
 
 
 def build_prompt(query: str, docs: List[Tuple[Any, float]]) -> str:
