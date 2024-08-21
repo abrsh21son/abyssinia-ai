@@ -1,4 +1,5 @@
-﻿import os
+﻿# Abyssinia AI - Wikipedia corpus fetcher
+import os
 import requests
 from bs4 import BeautifulSoup
 from code.logger import logger
