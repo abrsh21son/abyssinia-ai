@@ -1,18 +1,23 @@
 ﻿# Contributing to Abyssinia AI
 
-Thank you for your interest! Here are the contribution guidelines.
+Thank you for your interest in contributing!
 
-## Steps
-1. Fork the repository and create a feature branch.
-2. Make changes with clear commit messages.
-3. Run pytest tests/ to ensure all tests pass.
-4. Open a Pull Request.
+## How to Contribute
+1. Fork the repository.
+2. Create a branch: git checkout -b feature/my-feature
+3. Commit with clear messages following Conventional Commits.
+4. Run pytest tests/ to verify all tests pass.
+5. Open a Pull Request with a clear description.
 
-## Code Style
-- Follow PEP 8.
-- Add type hints to new functions.
-- Include docstrings for public APIs.
+## Code Standards
+- PEP 8 style
+- Type hints on all public functions
+- Docstrings for all public classes and functions
 
 ## Adding Corpus Documents
-- Place .txt files in data/.
-- Delete chroma_db/ to force re-embedding.
+1. Add .txt files (UTF-8) to data/
+2. Delete chroma_db/ to force re-embedding
+3. Restart the app
+
+## Reporting Bugs
+Open a GitHub issue with steps to reproduce and expected vs actual behaviour.
