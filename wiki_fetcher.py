@@ -2,7 +2,7 @@
 import os
 import requests
 from bs4 import BeautifulSoup
-from code.logger import logger
+from src.logger import logger
 
 
 def fetch_and_save_page(title, data_dir='data'):
@@ -24,3 +24,4 @@ def fetch_and_save_page(title, data_dir='data'):
     except Exception as e:
         logger.error(f'Failed to fetch {title}: {e}')
         return None
+

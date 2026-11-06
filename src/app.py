@@ -2,10 +2,10 @@
 import os
 import streamlit as st
 from dotenv import load_dotenv
-from code.vectordb_and_ingestion import VectorDBManager
-from code.prompt_builder import build_prompt
-from code.rag_assistant.retriever import deduplicate_and_filter
-from code.logger import logger
+from src.vectordb_and_ingestion import VectorDBManager
+from src.prompt_builder import build_prompt
+from src.rag_assistant.retriever import deduplicate_and_filter
+from src.logger import logger
 
 st.set_page_config(page_title='Abyssinia AI', page_icon='U+1F3DB', layout='centered')
 st.title('Abyssinia AI')
@@ -69,3 +69,4 @@ if st.button('Get Answer', type='primary'):
                     st.error(f'Input error: {e}')
                 except Exception as e:
                     st.error(f'Groq API error: {e}')
+

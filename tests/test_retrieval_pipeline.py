@@ -1,4 +1,4 @@
-﻿from code.retrieval_and_response import retrieve_relevant_chunks, __version__
+﻿from src.retrieval_and_response import retrieve_relevant_chunks, __version__
 
 
 def test_version():

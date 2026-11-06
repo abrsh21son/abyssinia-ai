@@ -2,10 +2,10 @@
 import os
 import sys
 from dotenv import load_dotenv
-from code.vectordb_and_ingestion import VectorDBManager
-from code.prompt_builder import build_prompt
-from code.rag_assistant.retriever import deduplicate_and_filter
-from code.logger import logger
+from src.vectordb_and_ingestion import VectorDBManager
+from src.prompt_builder import build_prompt
+from src.rag_assistant.retriever import deduplicate_and_filter
+from src.logger import logger
 
 __version__ = '0.1.0'
 
@@ -60,3 +60,4 @@ if __name__ == '__main__':
     if not args.query:
         parser.print_help(); sys.exit(1)
     print('\nAnswer:\n', respond_to_query(args.query, args.top_k, args.threshold))
+

@@ -1,5 +1,5 @@
 ﻿from unittest.mock import MagicMock, patch
-from code.vectordb_and_ingestion import VectorDBManager
+from src.vectordb_and_ingestion import VectorDBManager
 
 
 def test_count_returns_zero_when_no_db():

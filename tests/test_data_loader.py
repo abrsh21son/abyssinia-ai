@@ -1,6 +1,6 @@
 ﻿import os
 import tempfile
-from code.rag_assistant.data_loader import list_text_files
+from src.rag_assistant.data_loader import list_text_files
 
 
 def test_returns_txt_only():

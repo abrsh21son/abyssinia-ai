@@ -1,5 +1,5 @@
 ﻿import pytest
-from code.rag_assistant.generator import build_answer
+from src.rag_assistant.generator import build_answer
 
 
 class DummyLLM:

@@ -1,4 +1,4 @@
-﻿from code.rag_assistant.retriever import deduplicate_and_filter
+﻿from src.rag_assistant.retriever import deduplicate_and_filter
 
 
 class DummyDoc:

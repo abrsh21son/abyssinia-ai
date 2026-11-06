@@ -1,5 +1,5 @@
 ﻿import pytest
-from code.prompt_builder import build_prompt
+from src.prompt_builder import build_prompt
 
 
 class DummyDoc:
