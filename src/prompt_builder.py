@@ -28,4 +28,3 @@ def build_prompt(query: str, docs: List[Tuple[Any, float]]) -> str:
         f'Question: {query}\n'
         f'Answer:'
     )
-

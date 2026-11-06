@@ -4,7 +4,7 @@ from langchain_community.vectorstores import Chroma
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.docstore.document import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from src.logger import logger
+from .logger import logger
 
 
 class VectorDBManager:
@@ -75,4 +75,3 @@ class VectorDBManager:
             return db._collection.count()
         except Exception:
             return -1
-

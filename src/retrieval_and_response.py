@@ -2,10 +2,10 @@
 import os
 import sys
 from dotenv import load_dotenv
-from src.vectordb_and_ingestion import VectorDBManager
-from src.prompt_builder import build_prompt
-from src.rag_assistant.retriever import deduplicate_and_filter
-from src.logger import logger
+from .vectordb_and_ingestion import VectorDBManager
+from .prompt_builder import build_prompt
+from .rag_assistant.retriever import deduplicate_and_filter
+from .logger import logger
 
 __version__ = '0.1.0'
 
@@ -58,6 +58,6 @@ if __name__ == '__main__':
     parser.add_argument('--version', action='version', version=f'abyssinia-ai {__version__}')
     args = parser.parse_args()
     if not args.query:
-        parser.print_help(); sys.exit(1)
+        parser.print_help()
+        sys.exit(1)
     print('\nAnswer:\n', respond_to_query(args.query, args.top_k, args.threshold))
-

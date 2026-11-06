@@ -1,5 +1,5 @@
-﻿from src.prompt_builder import build_prompt
-from src.logger import logger
+﻿from ..prompt_builder import build_prompt
+from ..logger import logger
 
 
 def build_answer(llm, query: str, docs: list) -> object:

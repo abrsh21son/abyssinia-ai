@@ -1,5 +1,11 @@
 ﻿# Abyssinia AI - Streamlit entry point
 import os
+import sys
+
+# Add repo root to sys.path so the 'src' package is importable when
+# Streamlit Cloud runs this file directly as src/app.py
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import streamlit as st
 from dotenv import load_dotenv
 from src.vectordb_and_ingestion import VectorDBManager
@@ -7,8 +13,8 @@ from src.prompt_builder import build_prompt
 from src.rag_assistant.retriever import deduplicate_and_filter
 from src.logger import logger
 
-st.set_page_config(page_title='Abyssinia AI', page_icon='U+1F3DB', layout='centered')
-st.title('Abyssinia AI')
+st.set_page_config(page_title='Abyssinia AI', page_icon='🏛️', layout='centered')
+st.title('🏛️ Abyssinia AI')
 st.caption('An AI assistant for Ethiopian and Abyssinian history')
 load_dotenv()
 groq_key = os.getenv('GROQ_API_KEY')
@@ -34,7 +40,16 @@ with st.sidebar:
     st.caption('LLM: Groq LLaMA 3.1-8b-instant')
     st.divider()
     st.markdown('**Topics:**')
-    st.markdown('- Axum Empire\n- Zagwe Dynasty\n- Solomonic Dynasty\n- Menelik II\n- Haile Selassie\n- Derg Regime\n- Civil War\n- Modern Ethiopia')
+    st.markdown(
+        '- Axum Empire\n'
+        '- Zagwe Dynasty\n'
+        '- Solomonic Dynasty\n'
+        '- Menelik II\n'
+        '- Haile Selassie\n'
+        '- Derg Regime\n'
+        '- Ethiopian Civil War\n'
+        '- Modern Ethiopia'
+    )
 
 query = st.text_input('Your question:', placeholder='e.g. Who won the Battle of Adwa?')
 top_k = st.slider('Top-K chunks', min_value=1, max_value=5, value=2)
@@ -64,9 +79,10 @@ if st.button('Get Answer', type='primary'):
                         for doc, score in unique_contexts:
                             src = doc.metadata.get('filename', 'unknown')
                             chunk = doc.metadata.get('chunk_id', '?')
-                            st.markdown(f'- **{src}** chunk {chunk} (distance: {score:.3f})')
+                            st.markdown(f'- **{src}** chunk `{chunk}` (distance: `{score:.3f}`)')
                 except ValueError as e:
                     st.error(f'Input error: {e}')
                 except Exception as e:
                     st.error(f'Groq API error: {e}')
-
+            else:
+                st.error('GROQ_API_KEY is not set. Add it in Streamlit Cloud secrets.')
