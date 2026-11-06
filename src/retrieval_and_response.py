@@ -42,7 +42,7 @@ def respond_to_query(query, top_k=2, similarity_threshold=1.0):
     except ValueError as e:
         return f'Prompt error: {e}'
     try:
-        llm = ChatGroq(api_key=groq_key, model='llama-3.1-8b-instant', temperature=0)
+        llm = ChatGroq(api_key=groq_key, model='llama3-8b-8192', temperature=0)
         answer = llm.invoke(prompt)
         return getattr(answer, 'content', str(answer))
     except Exception as e:
@@ -61,3 +61,4 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit(1)
     print('\nAnswer:\n', respond_to_query(args.query, args.top_k, args.threshold))
+

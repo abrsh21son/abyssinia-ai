@@ -37,7 +37,7 @@ with st.sidebar:
     count = db_manager.count()
     st.metric('Indexed chunks', count if count >= 0 else 'unknown')
     st.caption('Embedding: all-MiniLM-L6-v2')
-    st.caption('LLM: Groq LLaMA 3.1-8b-instant')
+    st.caption('LLM: Groq llama3-8b-8192')
     st.divider()
     st.markdown('**Topics:**')
     st.markdown(
@@ -69,7 +69,7 @@ if st.button('Get Answer', type='primary'):
                 try:
                     prompt = build_prompt(query, unique_contexts)
                     from langchain_groq import ChatGroq
-                    llm = ChatGroq(api_key=groq_key, model='llama-3.1-8b-instant', temperature=0)
+                    llm = ChatGroq(api_key=groq_key, model='llama3-8b-8192', temperature=0)
                     response = llm.invoke(prompt)
                     answer_text = getattr(response, 'content', str(response))
                     logger.info(f'Query: {query}')
@@ -86,3 +86,5 @@ if st.button('Get Answer', type='primary'):
                     st.error(f'Groq API error: {e}')
             else:
                 st.error('GROQ_API_KEY is not set. Add it in Streamlit Cloud secrets.')
+
+
