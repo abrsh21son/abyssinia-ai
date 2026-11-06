@@ -242,12 +242,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Stats ──────────────────────────────────────────────────────────────────────
-c1, c2, c3 = st.columns(3)
-c1.metric("📚 Indexed Chunks", count if count >= 0 else "Unknown")
-c2.metric("💬 Questions Asked", len(st.session_state.messages) // 2)
-c3.metric("⚡ AI Engine", "Groq OSS 20B")
-st.divider()
+
 
 # ── Suggested questions ────────────────────────────────────────────────────────
 st.markdown('<div class="section-title">✨ Start Exploring</div>', unsafe_allow_html=True)
